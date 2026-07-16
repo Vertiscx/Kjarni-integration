@@ -13,6 +13,7 @@
 name = "kjarni-zendesk"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
+account_id = "d51d7fdd505836ba6e32fe204dc9bdef" # Vertis
 
 # ---------------------------------------------------------------------------
 # CUSTOMER: hafnarfjordur (Hafnarfjarðarbær) — was genericized as "customerA"
@@ -47,11 +48,11 @@ ZENDESK_TICKET_TAGS = ["nyr_starfsmadur_launateymi"]
 
 [[env.hafnarfjordur.kv_namespaces]]
 binding = "TOKEN_CACHE"
-id = "REPLACE_WITH_ID_FROM_WRANGLER_KV_NAMESPACE_CREATE"
+id = "9b7cf1e4c06449499b917a796a6d4461"
 
 [[env.hafnarfjordur.kv_namespaces]]
 binding = "IDEMPOTENCY"
-id = "REPLACE_WITH_ID_FROM_WRANGLER_KV_NAMESPACE_CREATE"
+id = "70535f46158c49cbb24ee9a076be5ae9"
 
 [[env.hafnarfjordur.queues.producers]]
 queue = "hafnarfjordur-kjarni-events"
