@@ -1,0 +1,103 @@
+# Wrangler config file. Think of this like pyproject.toml: it declares your
+# project's name, resources (KV, Queues) and — crucially for multi-tenant
+# hosting — a separate [env.<customer>] block per customer.
+#
+# Every [env.X] block becomes a COMPLETELY SEPARATE deployed Worker named
+# "kjarni-zendesk-X". Each one gets its own secrets, its own KV namespaces,
+# its own queues. Nothing is shared at runtime between environments, even
+# though they all run from this one codebase. That separation IS the
+# tenant-isolation boundary — there is no code-level access control to get
+# wrong, because customer B's Worker simply has no binding that can reach
+# customer A's KV/queue/secrets.
+
+name = "kjarni-zendesk"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# ---------------------------------------------------------------------------
+# CUSTOMER: hafnarfjordur (Hafnarfjarðarbær) — was genericized as "customerA"
+# while the real customer wasn't yet defined; now named for real.
+# Copy this whole block (renaming "hafnarfjordur") for every new customer.
+# See the setup guide, section "Onboard a new customer", for the full
+# checklist that goes with copying this block.
+# ---------------------------------------------------------------------------
+[env.hafnarfjordur]
+name = "kjarni-zendesk-hafnarfjordur"
+
+[env.hafnarfjordur.vars]
+# Non-secret config for this tenant.
+# NOTE: KJARNI_TENANT_HOST and ZENDESK_SUBDOMAIN below are still placeholders
+# following the "<customer>-api.starfsmenn.is" / "<customer>" pattern used
+# elsewhere in this file — replace with the real Kjarni tenant hostname and
+# real Zendesk subdomain for Hafnarfjörður once confirmed.
+KJARNI_TENANT_HOST = "hafnarfjordur-api.starfsmenn.is"
+ZENDESK_SUBDOMAIN = "hafnarfjordur"
+# Selects this customer's ticket subject/body text from src/templates/ (see
+# src/templates/index.js) — must match a registered template file's name.
+CUSTOMER_ID = "hafnarfjordur"
+# Zendesk ticket routing — same numeric IDs mapping.js used to hardcode.
+# Each customer gets their own values here, since brand/group/form/requester
+# etc. are specific to that customer's Zendesk instance.
+ZENDESK_BRAND_ID = 7330193677468
+ZENDESK_GROUP_ID = 7887413996700
+ZENDESK_REQUESTER_ID = 366526889760
+ZENDESK_ASSIGNEE_ID = 7887413996700
+ZENDESK_FORM_ID = 11075142364060
+ZENDESK_TICKET_TAGS = ["nyr_starfsmadur_launateymi"]
+
+[[env.hafnarfjordur.kv_namespaces]]
+binding = "TOKEN_CACHE"
+id = "REPLACE_WITH_ID_FROM_WRANGLER_KV_NAMESPACE_CREATE"
+
+[[env.hafnarfjordur.kv_namespaces]]
+binding = "IDEMPOTENCY"
+id = "REPLACE_WITH_ID_FROM_WRANGLER_KV_NAMESPACE_CREATE"
+
+[[env.hafnarfjordur.queues.producers]]
+queue = "hafnarfjordur-kjarni-events"
+binding = "EVENT_QUEUE"
+
+[[env.hafnarfjordur.queues.consumers]]
+queue = "hafnarfjordur-kjarni-events"
+max_batch_size = 10
+max_retries = 5
+dead_letter_queue = "hafnarfjordur-kjarni-events-dlq"
+
+# Secrets (KJARNI_USERNAME, KJARNI_PASSWORD, KJARNI_WEBHOOK_SECRET,
+# ZENDESK_EMAIL, ZENDESK_API_TOKEN) are NOT set here. They are set with
+# `wrangler secret put <NAME> --env hafnarfjordur` — see the setup guide.
+
+# ---------------------------------------------------------------------------
+# CUSTOMER: customerB (template — duplicate for each additional customer)
+# ---------------------------------------------------------------------------
+# [env.customerB]
+# name = "kjarni-zendesk-customerB"
+#
+# [env.customerB.vars]
+# KJARNI_TENANT_HOST = "customerB-api.starfsmenn.is"
+# ZENDESK_SUBDOMAIN = "customerB"
+# CUSTOMER_ID = "customerB"  # requires src/templates/customerB.js to exist and be registered
+# ZENDESK_BRAND_ID = 0
+# ZENDESK_GROUP_ID = 0
+# ZENDESK_REQUESTER_ID = 0
+# ZENDESK_ASSIGNEE_ID = 0
+# ZENDESK_FORM_ID = 0
+# ZENDESK_TICKET_TAGS = ["some_tag_for_customerB"]
+#
+# [[env.customerB.kv_namespaces]]
+# binding = "TOKEN_CACHE"
+# id = "REPLACE_WITH_ID"
+#
+# [[env.customerB.kv_namespaces]]
+# binding = "IDEMPOTENCY"
+# id = "REPLACE_WITH_ID"
+#
+# [[env.customerB.queues.producers]]
+# queue = "customerB-kjarni-events"
+# binding = "EVENT_QUEUE"
+#
+# [[env.customerB.queues.consumers]]
+# queue = "customerB-kjarni-events"
+# max_batch_size = 10
+# max_retries = 5
+# dead_letter_queue = "customerB-kjarni-events-dlq"

@@ -1,0 +1,17 @@
+{
+  "name": "kjarni-zendesk-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env hafnarfjordur",
+    "deploy:hafnarfjordur": "wrangler deploy --env hafnarfjordur",
+    "tail:hafnarfjordur": "wrangler tail --env hafnarfjordur",
+    "test:webhook": "node scripts/sign-test-payload.js",
+    "sample:payload": "node scripts/build-sample-payload.js",
+    "create:test-ticket": "node scripts/create-test-ticket.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.110.0"
+  }
+}

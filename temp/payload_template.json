@@ -1,0 +1,14 @@
+{
+    "ticket": {
+        "comment": {
+            "body": "Eftirfarandi starfsmaður hefur verið ráðinn til Hafnarfjarðarbæjar og verið stofnaður í nýju starfi í Kjarna.\n •\tNafn: [FULL NAME]\n •\tKennitala: [SSN]\n •\tSvið: [TEXT]\n •\tDeild: [DEPARTMENT]\n •\tStaða: [POSITION]\n •\tTegund ráðningar: [TYPE OF EMPLOYMENT]\n •\tYfirmaður: [SUPERVISOR]\n •\tFyrsti starfsdagur: [FIRST DAY]\n •\tSíðasti starfsdagur: [END DAY]\n •\tStarfshlufall: [EMPLOYMENT PORTION]\nTil launafulltrúa, vinsamlegast yfirfarið skráningar í launa- og mannauðskerfi áður en ráðningarsamningur er útbúinn og samningur um fasta yfirvinnu og/eða akstur ef við á. \n\nTryggja þarf skil á viðeigandi gögnum áður en ráðningarsamningur er gerður svo sem menntunargögn til staðfestingar á námi, námsferilsyfirlit, leyfisbréf kennara og starfsvottorð til staðfestingar á starfsferli."
+            },
+        "subject": "Nýr starfsmaður - [SSN]",
+        "brand_id": "[NAME OF THE BRAND]",
+        "group_id": "[GROUP_ID TO BE USED]",
+        "requester": "[SOME ZENDESK USER]",
+        "assignee": "[SOME ZENDESK USER OR GROUP]",
+        "form": "[SOME FORM TO BE USED]",
+        "tags": "[SOME TAG OR TAGS TO BE USED]"
+        }
+}
