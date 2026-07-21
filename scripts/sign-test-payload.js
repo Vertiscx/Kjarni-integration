@@ -29,9 +29,12 @@ const SAMPLE_PAYLOAD = {
   Properties: {},
   Notifications: [
     {
-      Action: "HrFunction.Update",
+      Action: "EmployeeMaster.Update",
       Id: "2",
-      Endpoint: "kjarni/api/v2/HrFunctions/2",
+      // Guessed to follow the same "kjarni/api/v2/<Entity>s/{id}" pattern as
+      // Kjarni's HrFunctions example — not yet confirmed against a real
+      // EmployeeMaster event. Update once a live event is observed.
+      Endpoint: "kjarni/api/v2/EmployeeMasters/2",
     },
   ],
 };

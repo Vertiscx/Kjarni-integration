@@ -57,7 +57,7 @@ async function refreshToken(env) {
 
 // Fetches the actual changed record. The webhook notification itself never
 // contains business data — only a relative `Endpoint`, e.g.
-// "kjarni/api/v2/HrFunctions/2" — by design, so a leaked webhook payload
+// "kjarni/api/v2/EmployeeMasters/2" — by design, so a leaked webhook payload
 // alone can't be used to read HR data. We still need a valid bearer token
 // to actually retrieve it.
 export async function fetchKjarniRecord(env, token, endpoint) {
@@ -78,4 +78,49 @@ export async function fetchKjarniRecord(env, token, endpoint) {
   }
 
   return response.json();
+}
+
+// The EmployeeMasters entity (fetched above) only carries biographical data —
+// no Department/JobTitle/Division/EmploymentType/Manager/EmploymentPercentage.
+// Those live on the older HrData OData endpoints instead, so we look that up
+// separately and merge the two.
+//
+// Deliberately EmployeesAll, not the narrower Employees: per Kjarni's docs,
+// Employees excludes anyone without an active employment status yet (e.g.
+// registered but not yet started — exactly the case for a brand-new hire at
+// the moment their Insert/Update webhook fires, since RecrutingDate/LastHireDate
+// is often still in the future then). EmployeesAll returns everyone regardless
+// of status, which is what this integration actually needs.
+//
+// Keyed by kennitala (SocialSecurityNumber), not name — Icelandic names repeat
+// constantly, but a kennitala is unique per person, so this is the only safe
+// join key between the two endpoints.
+export async function fetchEmployeeDetailsBySsn(env, token, ssn) {
+  const escapedSsn = ssn.replace(/'/g, "''"); // OData string literal escaping
+  const filterValue = `SocialSecurityNumber eq '${escapedSsn}'`;
+  const url = `https://${env.KJARNI_TENANT_HOST}/api/HrData/EmployeesAll?$filter=${encodeURIComponent(filterValue)}`;
+
+  const response = await fetch(url, {
+    headers: {
+      Accepts: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Kjarni employee details fetch failed (${response.status}): ${text}`);
+  }
+
+  const results = await response.json();
+  if (results.length === 0) {
+    throw new Error(`No HrData/EmployeesAll record found for SSN ${ssn}`);
+  }
+  if (results.length > 1) {
+    console.warn(
+      `Expected exactly one HrData/EmployeesAll match for SSN ${ssn}, got ${results.length} — using the first.`
+    );
+  }
+  return results[0];
 }

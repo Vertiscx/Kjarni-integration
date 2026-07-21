@@ -20,10 +20,11 @@
 // stays *unwrapped*, no top-level "ticket" key, to match what zendesk.js
 // already expects).
 //
-// The exact Kjarni record field names aren't finalized yet — we're building
-// against the assumption that "we have the data we need" for now. Each
-// variable below is declared separately (rather than inlined) specifically
-// so it's obvious which template placeholder it corresponds to.
+// `record` is the merged EmployeeMasters + HrData/EmployeesAll object built
+// in src/index.js's processEvent() — see README for why it's two Kjarni API
+// calls, not one. Each variable below is declared separately (rather than
+// inlined) specifically so it's obvious which template placeholder it
+// corresponds to.
 //
 // The routing/identity fields (brand, group, requester, assignee, form,
 // tags) come from `env` rather than being hardcoded here, because this same
@@ -40,7 +41,7 @@
 import { getTemplatesForCustomer } from "../templates/index.js";
 
 export function mapToZendeskTicket(action, record, env) {
-  // action looks like "HrFunction.Update" or "OrgCompany.Insert"
+  // action looks like "EmployeeMaster.Update" or "OrgCompany.Insert"
   const [entityType, changeType] = action.split(".");
 
   const { subjectTemplate, bodyTemplate } = getTemplatesForCustomer(env.CUSTOMER_ID);
@@ -73,19 +74,53 @@ export function mapToZendeskTicket(action, record, env) {
   };
 }
 
-// entityType/changeType/record aren't used yet — bracketed placeholders in
-// the template ([SSN], [FULL NAME], etc.) are intentionally left as literal
-// text for now, per instructions: we're not wiring these to real Kjarni
-// record fields yet. Once the real Kjarni field names are decided, this is
-// where each bracketed placeholder gets replaced with the corresponding
-// value pulled from `record` (entityType/changeType may also end up driving
-// which template variant is used, if HrFunction vs OrgCompany ever need
-// different wording — that logic would also live here, still per-customer
-// via subjectTemplate/bodyTemplate).
+// Maps each bracketed template placeholder to its real value on `record`
+// (the merged EmployeeMasters + HrData/EmployeesAll object built in
+// src/index.js's processEvent()). Field names/mapping confirmed against a
+// real Kjarni demo-tenant event — see README's "Two Kjarni record fetches"
+// section for where each field comes from.
+//
+// entityType/changeType aren't used yet — only one template variant exists
+// (hafnarfjordur's), so there's nothing to branch on. If EmployeeMaster vs
+// some other entity type ever need different wording, that branching would
+// go here.
+function placeholderValues(record) {
+  return {
+    "[SSN]": record.SocialSecurityNumber,
+    "[FULL NAME]": record.Name,
+    "[TEXT]": record.DivisionName, // "Svið" — template's own placeholder is literally "[TEXT]"
+    "[DEPARTMENT]": record.Department,
+    "[POSITION]": record.JobTitle,
+    "[TYPE OF EMPLOYMENT]": record.EmploymentTypeName,
+    "[SUPERVISOR]": record.ManagerName,
+    "[FIRST DAY]": formatDate(record.LastHireDate),
+    "[END DAY]": formatDate(record.LastDayOfWork),
+    "[EMPLOYMENT PORTION]": formatPercentage(record.EmploymentPercentage),
+  };
+}
+
+// Kjarni dates arrive as full ISO timestamps (e.g. "2026-08-01T00:00:00Z")
+// with a meaningless midnight time component — the ticket only needs the date.
+function formatDate(value) {
+  return value ? value.slice(0, 10) : "";
+}
+
+function formatPercentage(value) {
+  return value === null || value === undefined ? "" : `${value}%`;
+}
+
+function applyPlaceholders(template, record) {
+  const values = placeholderValues(record);
+  return Object.entries(values).reduce(
+    (text, [placeholder, value]) => text.replaceAll(placeholder, value ?? ""),
+    template
+  );
+}
+
 function buildSubject(entityType, changeType, record, subjectTemplate) {
-  return subjectTemplate;
+  return applyPlaceholders(subjectTemplate, record);
 }
 
 function buildBody(entityType, changeType, record, bodyTemplate) {
-  return bodyTemplate;
+  return applyPlaceholders(bodyTemplate, record);
 }

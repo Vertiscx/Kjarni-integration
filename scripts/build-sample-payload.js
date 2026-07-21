@@ -12,13 +12,23 @@
 
 import { mapToZendeskTicket } from "../src/lib/mapping.js";
 
-const SAMPLE_ACTION = "HrFunction.Update";
+const SAMPLE_ACTION = "EmployeeMaster.Update";
 
+// Mirrors the real merged shape processEvent() builds in src/index.js
+// ({ ...masterRecord (EmployeeMasters), ...employeeDetails (HrData/EmployeesAll) }),
+// trimmed to just the fields placeholderValues() in mapping.js actually reads.
+// Confirmed against a real Kjarni demo-tenant event.
 const SAMPLE_RECORD = {
-  ID: "42",
+  SocialSecurityNumber: "0402609999",
   Name: "Jón Jónsson",
-  Department: "Sales",
-  WorkEmail: "jon@jon.is",
+  DivisionName: "Þjónustusvið",
+  Department: "Reykjavík",
+  JobTitle: "Þjónustustjóri",
+  EmploymentTypeName: "Fastráðning",
+  ManagerName: "Guðrún Guðrúnardóttir",
+  LastHireDate: "2026-08-01T00:00:00Z",
+  LastDayOfWork: null,
+  EmploymentPercentage: 100,
 };
 
 // Mirrors wrangler.toml's [env.hafnarfjordur.vars] — keep these two in sync.

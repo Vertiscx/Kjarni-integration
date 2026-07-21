@@ -14,7 +14,7 @@
 // running for beyond reading its own `env`.
 
 import { verifySignature } from "./lib/verifySignature.js";
-import { getToken, fetchKjarniRecord } from "./lib/kjarniAuth.js";
+import { getToken, fetchKjarniRecord, fetchEmployeeDetailsBySsn } from "./lib/kjarniAuth.js";
 import { mapToZendeskTicket } from "./lib/mapping.js";
 import { createZendeskTicket } from "./lib/zendesk.js";
 import { alreadyProcessed, markProcessed } from "./lib/idempotency.js";
@@ -59,6 +59,8 @@ export default {
 
     const notifications = Array.isArray(payload.Notifications) ? payload.Notifications : [];
 
+    console.log("Kjarni webhook payload:", JSON.stringify(payload));
+
     // Enqueue each notification as its own message and acknowledge Kjarni
     // immediately. The actual Kjarni record fetch + Zendesk ticket creation
     // happens later, in the queue() handler below.
@@ -101,7 +103,21 @@ async function processEvent(event, env) {
   }
 
   const token = await getToken(env);
-  const record = await fetchKjarniRecord(env, token, event.endpoint);
+
+  // EmployeeMasters (fetched via the webhook's own Endpoint) only carries
+  // biographical fields. Department/JobTitle/Division/EmploymentType/Manager/
+  // EmploymentPercentage live on the older HrData/Employees endpoint instead,
+  // joined by kennitala (EntityNR / SocialSecurityNumber) since that's unique
+  // per person, unlike name. This assumes event.action is always an
+  // EmployeeMaster.* event — true today since that's the only filter we
+  // subscribe to; revisit if other entity types are ever added.
+  const masterRecord = await fetchKjarniRecord(env, token, event.endpoint);
+  console.log(`Kjarni EmployeeMasters record for ${event.action} (${dedupeKey}):`, JSON.stringify(masterRecord));
+
+  const employeeDetails = await fetchEmployeeDetailsBySsn(env, token, masterRecord.EntityNR);
+  console.log(`Kjarni HrData/EmployeesAll record for ${event.action} (${dedupeKey}):`, JSON.stringify(employeeDetails));
+
+  const record = { ...masterRecord, ...employeeDetails };
   const ticket = mapToZendeskTicket(event.action, record, env);
   const zendeskResponse = await createZendeskTicket(env, ticket);
 

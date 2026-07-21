@@ -50,12 +50,18 @@ const env = {
 
 // Stand-in for "the data we've received from Kjarni" — same sample record
 // used in scripts/build-sample-payload.js.
-const SAMPLE_ACTION = "HrFunction.Update";
+const SAMPLE_ACTION = "EmployeeMaster.Update";
 const SAMPLE_RECORD = {
-  ID: "42",
+  SocialSecurityNumber: "0402609999",
   Name: "Jón Jónsson",
-  Department: "Sales",
-  WorkEmail: "jon@jon.is",
+  DivisionName: "Þjónustusvið",
+  Department: "Reykjavík",
+  JobTitle: "Þjónustustjóri",
+  EmploymentTypeName: "Fastráðning",
+  ManagerName: "Guðrún Guðrúnardóttir",
+  LastHireDate: "2026-08-01T00:00:00Z",
+  LastDayOfWork: null,
+  EmploymentPercentage: 100,
 };
 
 async function main() {

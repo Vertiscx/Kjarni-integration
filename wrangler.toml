@@ -69,6 +69,50 @@ dead_letter_queue = "hafnarfjordur-kjarni-events-dlq"
 # `wrangler secret put <NAME> --env hafnarfjordur` — see the setup guide.
 
 # ---------------------------------------------------------------------------
+# DEMO/TEST environment — NOT a real customer. Points at Kjarni's demo tenant
+# (thirdparty-api.starfsmenn.is) and a Zendesk sandbox (d3v-vertis), so the
+# whole webhook -> fetch -> map -> ticket flow can be exercised end-to-end
+# without touching hafnarfjordur's real Kjarni tenant or real Zendesk.
+# Reuses CUSTOMER_ID "hafnarfjordur" so it pulls the same ticket template —
+# this is testing hafnarfjordur's integration, just against sandboxed data.
+# ---------------------------------------------------------------------------
+[env.demo]
+name = "kjarni-zendesk-demo"
+
+[env.demo.vars]
+KJARNI_TENANT_HOST = "thirdparty-api.starfsmenn.is"
+ZENDESK_SUBDOMAIN = "d3v-vertis"
+CUSTOMER_ID = "hafnarfjordur"
+ZENDESK_BRAND_ID = 36437594175515
+ZENDESK_GROUP_ID = 53282817324827
+ZENDESK_REQUESTER_ID = 51112289893915
+ZENDESK_ASSIGNEE_ID = 51112289893915
+ZENDESK_FORM_ID = 53282975112475
+ZENDESK_TICKET_TAGS = ["nyr_starfsmadur_launateymi", "kjarni_demo_test"]
+
+[[env.demo.kv_namespaces]]
+binding = "TOKEN_CACHE"
+id = "fdffd304ff614205bdbfc8d3c7b4db90"
+
+[[env.demo.kv_namespaces]]
+binding = "IDEMPOTENCY"
+id = "a77d8db9c47f4090aecf498bc124536e"
+
+[[env.demo.queues.producers]]
+queue = "demo-kjarni-events"
+binding = "EVENT_QUEUE"
+
+[[env.demo.queues.consumers]]
+queue = "demo-kjarni-events"
+max_batch_size = 10
+max_retries = 5
+dead_letter_queue = "demo-kjarni-events-dlq"
+
+# Secrets (KJARNI_USERNAME, KJARNI_PASSWORD, KJARNI_WEBHOOK_SECRET,
+# ZENDESK_EMAIL, ZENDESK_API_TOKEN) are NOT set here. They are set with
+# `wrangler secret put <NAME> --env demo` — see the setup guide.
+
+# ---------------------------------------------------------------------------
 # CUSTOMER: customerB (template — duplicate for each additional customer)
 # ---------------------------------------------------------------------------
 # [env.customerB]
