@@ -20,6 +20,7 @@ export const bodyTemplate = `Eftirfarandi starfsmaður hefur verið ráðinn til
  •\tFyrsti starfsdagur: [FIRST DAY]
  •\tSíðasti starfsdagur: [END DAY]
  •\tStarfshlufall: [EMPLOYMENT PORTION]
+
 Til launafulltrúa, vinsamlegast yfirfarið skráningar í launa- og mannauðskerfi áður en ráðningarsamningur er útbúinn og samningur um fasta yfirvinnu og/eða akstur ef við á. ${""}
 
 Tryggja þarf skil á viðeigandi gögnum áður en ráðningarsamningur er gerður svo sem menntunargögn til staðfestingar á námi, námsferilsyfirlit, leyfisbréf kennara og starfsvottorð til staðfestingar á starfsferli.`;

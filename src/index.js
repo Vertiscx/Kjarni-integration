@@ -97,6 +97,14 @@ export default {
 async function processEvent(event, env) {
   const dedupeKey = `${event.eventId}:${event.attempt}`;
 
+  // The current template/mapping is only for the "new employee" case. Update
+  // and Delete need their own templates/logic later — until that exists,
+  // skip them entirely rather than send a new-hire ticket for the wrong event.
+  if (event.action !== "EmployeeMaster.Insert") {
+    console.log(`Skipping ${event.action} (${dedupeKey}) — only EmployeeMaster.Insert creates a ticket for now.`);
+    return;
+  }
+
   if (await alreadyProcessed(env, dedupeKey)) {
     console.log(`Skipping already-processed event ${dedupeKey}`);
     return;
